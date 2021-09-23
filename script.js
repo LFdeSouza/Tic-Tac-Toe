@@ -1,5 +1,5 @@
 const game = (() => {
-  let xTurn = true;
+  let currentTurn = "X";
 
   const winningCombinations = [
     [0, 1, 2],
@@ -13,34 +13,72 @@ const game = (() => {
   ];
 
   const swapTurns = () => {
-    xTurn = xTurn ? false : true;
+    currentTurn = currentTurn === "X" ? "O" : "X";
   };
 
-  const isXturn = () => {
-    return xTurn;
+  const getTurn = () => {
+    return currentTurn;
   };
 
-  const gameOver = () => {
-    //check if game is over
-    return;
+  const checkGameOver = () => {
+    for (const combination of winningCombinations) {
+      if (
+        square[combination[0]].classList.contains(currentTurn) &&
+        square[combination[1]].classList.contains(currentTurn) &&
+        square[combination[2]].classList.contains(currentTurn)
+      ) {
+        return true;
+      }
+    }
+    return false;
   };
 
-  return { xTurn, swapTurns, isXturn, gameOver };
+  return { swapTurns, getTurn, checkGameOver };
 })();
 
-// Get board squares and handle events
-const square = document.querySelectorAll(".square");
+const displayChange = (() => {
+  const addMark = (e, mark) => {
+    e.target.textContent = mark;
+    e.target.classList.add(mark);
+  };
 
+  const changePlayer = (playerText, mark) => {
+    playerText.textContent = `Player ${mark}'s turn`;
+  };
+
+  const displayOverlay = (player) => {
+    overlayMessage.textContent = `Player ${player} Wins!`;
+    overlay.style.display = "flex";
+  };
+
+  return { addMark, changePlayer, displayOverlay };
+})();
+
+// Get html elements
+const playerMessage = document.querySelector(".message");
+const square = document.querySelectorAll(".square");
+const overlay = document.querySelector(".overlay");
+const overlayMessage = document.querySelector(".overlay-message");
+const resetButton = document.querySelector(".reset-button");
+
+//Event: Handle board clicks
 square.forEach((cell) => {
   cell.addEventListener("click", handleClick, { once: true });
 });
 
 function handleClick(e) {
-  console.log(game.xTurn);
-  if (game.isXturn()) {
-    e.target.textContent = "X";
-  } else {
-    e.target.textContent = "O";
+  displayChange.addMark(e, game.getTurn());
+  if (game.checkGameOver()) {
+    displayChange.displayOverlay(game.getTurn());
   }
   game.swapTurns();
+  displayChange.changePlayer(playerMessage, game.getTurn());
+  //change player display
+}
+
+//Event: reset game
+resetButton.addEventListener("click", resetGame);
+
+function resetGame() {
+  location.reload();
 }
