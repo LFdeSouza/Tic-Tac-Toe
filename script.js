@@ -20,7 +20,7 @@ const game = (() => {
     return currentTurn;
   };
 
-  const checkGameOver = () => {
+  const checkWin = () => {
     for (const combination of winningCombinations) {
       if (
         square[combination[0]].classList.contains(currentTurn) &&
@@ -33,7 +33,13 @@ const game = (() => {
     return false;
   };
 
-  return { swapTurns, getTurn, checkGameOver };
+  const isTie = () => {
+    return [...square].every(
+      (cell) => cell.classList.contains("X") || cell.classList.contains("O")
+    );
+  };
+
+  return { swapTurns, getTurn, checkWin, isTie };
 })();
 
 const displayChange = (() => {
@@ -46,8 +52,8 @@ const displayChange = (() => {
     playerText.textContent = `Player ${mark}'s turn`;
   };
 
-  const displayOverlay = (player) => {
-    overlayMessage.textContent = `Player ${player} Wins!`;
+  const displayOverlay = (message) => {
+    overlayMessage.textContent = message;
     overlay.style.display = "flex";
   };
 
@@ -68,8 +74,12 @@ square.forEach((cell) => {
 
 function handleClick(e) {
   displayChange.addMark(e, game.getTurn());
-  if (game.checkGameOver()) {
-    displayChange.displayOverlay(game.getTurn());
+  if (game.checkWin()) {
+    const winnerMessage = `Player ${game.getTurn()} Wins!`;
+    displayChange.displayOverlay(winnerMessage);
+  } else if (game.isTie()) {
+    const tieMessage = `It's a Tie!`;
+    displayChange.displayOverlay(tieMessage);
   }
   game.swapTurns();
   displayChange.changePlayer(playerMessage, game.getTurn());
